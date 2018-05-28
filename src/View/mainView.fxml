@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="557.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller.ControllerMainView">
+   <children>
+      <TabPane prefHeight="559.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+          <Tab text="Empleado">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TitledPane animated="false" collapsible="false" layoutY="287.0" prefHeight="104.0" prefWidth="600.0" text="RegistrarAlquiler">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="124.0" prefWidth="598.0">
+                                 <children>
+                                    <ComboBox fx:id="idClienteAlquiler" layoutX="14.0" layoutY="14.0" prefWidth="150.0" promptText="ID Cliente" />
+                                    <ComboBox fx:id="idInventario" layoutX="179.0" layoutY="14.0" prefWidth="150.0" promptText="ID Inventario" />
+                                    <ComboBox fx:id="idStaffAlquiler" layoutX="352.0" layoutY="14.0" prefWidth="150.0" promptText="ID Staff" />
+                                    <Button fx:id="registrarAlquiler" layoutX="511.0" layoutY="14.0" mnemonicParsing="false" text="Registrar" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </TitledPane>
+                        <TitledPane animated="false" collapsible="false" layoutY="391.0" prefHeight="129.0" prefWidth="600.0" text="Registrar Devolución">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <ComboBox fx:id="idClienteDevolucion" layoutX="14.0" layoutY="14.0" prefWidth="150.0" promptText="ID Cliente" />
+                                    <ComboBox fx:id="idRental" layoutX="182.0" layoutY="14.0" prefWidth="150.0" promptText="ID Rental" />
+                                    <ComboBox fx:id="idStaffDevolucion" layoutX="350.0" layoutY="14.0" prefWidth="150.0" promptText="ID Staff" />
+                                    <TextField fx:id="monto" layoutX="14.0" layoutY="54.0" prefHeight="31.0" prefWidth="146.0" promptText="Monto" />
+                                    <Button fx:id="registrarDevolucion" layoutX="182.0" layoutY="54.0" mnemonicParsing="false" text="Registrar" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </TitledPane>
+                        <TitledPane animated="false" collapsible="false" prefHeight="286.0" prefWidth="600.0" text="Buscar Pelicula">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="83.0" prefWidth="598.0">
+                                 <children>
+                                    <TextField fx:id="tituloBusqueda" layoutX="14.0" layoutY="14.0" promptText="Titulo" />
+                                    <Button fx:id="buscar" layoutX="220.0" layoutY="14.0" mnemonicParsing="false" text="Buscar" />
+                                    <TextArea fx:id="resultados" editable="false" layoutX="14.0" layoutY="57.0" prefHeight="188.0" prefWidth="573.0" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </TitledPane>
+                     </children>
+                  </AnchorPane>
+            </content>
+          </Tab>
+          <Tab text="Administrador">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TitledPane animated="false" collapsible="false" prefHeight="188.0" prefWidth="600.0" text="Registrar Cliente">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="147.0" prefWidth="598.0">
+                                 <children>
+                                    <TextField fx:id="fName" layoutX="14.0" layoutY="14.0" prefHeight="31.0" prefWidth="159.0" promptText="First Name" />
+                                    <TextField fx:id="lName" layoutX="191.0" layoutY="14.0" promptText="Last Name" />
+                                    <TextField fx:id="email" layoutX="397.0" layoutY="14.0" promptText="Email" />
+                                    <Button fx:id="registrar" layoutX="260.0" layoutY="111.0" mnemonicParsing="false" text="Registrar" />
+                                    <ComboBox fx:id="address" layoutX="14.0" layoutY="54.0" prefHeight="31.0" prefWidth="274.0" promptText="Direccion" />
+                                    <ComboBox fx:id="idTienda" layoutX="299.0" layoutY="54.0" prefHeight="31.0" prefWidth="287.0" promptText="ID Tienda" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </TitledPane>
+                        <TitledPane animated="false" collapsible="false" layoutY="188.0" prefHeight="332.0" prefWidth="600.0" text="Registrar Película">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <ComboBox fx:id="catDis" layoutX="14.0" layoutY="14.0" prefHeight="31.0" prefWidth="207.0" promptText="Categorias Disponibles" />
+                                    <Button fx:id="annadirCat" layoutX="234.0" layoutY="14.0" mnemonicParsing="false" text="Añadir" />
+                                    <ComboBox fx:id="catAdd" layoutX="322.0" layoutY="14.0" prefHeight="31.0" prefWidth="197.0" promptText="Categorias Añadidas" />
+                                    <ComboBox fx:id="actDis" layoutX="13.0" layoutY="70.0" prefHeight="31.0" prefWidth="207.0" promptText="Actores Disponibles" />
+                                    <ComboBox fx:id="actAdd" layoutX="321.0" layoutY="70.0" prefHeight="31.0" prefWidth="199.0" promptText="Actores Añadidos" />
+                                    <Button fx:id="annadirAct" layoutX="233.0" layoutY="70.0" mnemonicParsing="false" text="Añadir" />
+                                    <TextField fx:id="desc" layoutX="13.0" layoutY="189.0" promptText="Descripción" />
+                                    <TextField fx:id="lenght" layoutX="220.0" layoutY="249.0" promptText="Lenght" />
+                                    <DatePicker fx:id="releaseDate" layoutX="13.0" layoutY="249.0" prefHeight="31.0" prefWidth="186.0" promptText="Release Date" />
+                                    <TextField fx:id="replacementCost" layoutX="420.0" layoutY="131.0" prefHeight="31.0" prefWidth="166.0" promptText="Replacement Cost" />
+                                    <ComboBox fx:id="lenguaje" layoutX="220.0" layoutY="131.0" prefHeight="31.0" prefWidth="190.0" promptText="Lenguaje" />
+                                    <TextField fx:id="title" layoutX="13.0" layoutY="131.0" promptText="Title" />
+                                    <Button fx:id="guardar" layoutX="421.0" layoutY="249.0" mnemonicParsing="false" text="Guardar" />
+                                    <TextField fx:id="rentalDuration" layoutX="220.0" layoutY="189.0" promptText="Rental Duration (Days)" />
+                                    <ComboBox fx:id="rating" layoutX="420.0" layoutY="189.0" prefHeight="31.0" prefWidth="166.0" promptText="Rating" />
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </TitledPane>
+                     </children>
+                  </AnchorPane>
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</AnchorPane>

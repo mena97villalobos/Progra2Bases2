@@ -1,5 +1,6 @@
 package Controller;
 
+import Model.Consultas;
 import Model.Film;
 import Model.GestorDB;
 import javafx.collections.FXCollections;
@@ -10,8 +11,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 
 import java.net.URL;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 public class ControllerMainView implements Initializable {
@@ -81,15 +87,35 @@ public class ControllerMainView implements Initializable {
     public Button registrarDevolucion;
     @FXML
     public ComboBox idTienda;
+    @FXML
+    public ComboBox consultas;
+    @FXML
+    public Button consultar;
+    @FXML
+    public TextArea olapResults;
+    @FXML
+    public TextField variables;
+    @FXML
+    public Button saveParam;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setCategorias();
-        setActores();
-        setLenguajes();
         setRatings();
         setAddress();
         setIdTienda();
+        setConsultas();
+        setClientes();
+        setStaff();
+        setInventario();
+        setRentals();
+        try{
+            setCategorias();
+            setActores();
+            setLenguajes();
+        }
+        catch (Exception e){ }
+        variables.setDisable(true);
+        saveParam.setDisable(true);
         //TODO añadir las categorias a la pelicula creada
         guardar.setOnAction(event -> {
             String titulo = title.getText();
@@ -100,10 +126,18 @@ public class ControllerMainView implements Initializable {
             String mpaaRating = (String) rating.getSelectionModel().getSelectedItem();
             String l = (String) lenguaje.getSelectionModel().getSelectedItem();
             int idLenguaje = Integer.parseInt(Character.toString(l.charAt(0)));
+
+            String fecha = releaseDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date parsedDate = null;
+            try {
+                parsedDate = dateFormat.parse(fecha);
+            } catch (ParseException e) {}
+            Timestamp timestamp = new java.sql.Timestamp(parsedDate.getTime());
             ArrayList<String> cats = new ArrayList<>(catAdd.getItems());
             ArrayList<String> acts = new ArrayList<>(actAdd.getItems());
             Film f = new Film(titulo, descripcion, duracionPrestamo, duracion, costoRemplazo, mpaaRating,
-                    idLenguaje, cats, acts);
+                    idLenguaje, cats, acts, timestamp);
             GestorDB.gestor.insertarPelicula(f);
         });
         annadirAct.setOnAction(event -> {
@@ -128,7 +162,7 @@ public class ControllerMainView implements Initializable {
             GestorDB.gestor.insertarCliente(nombre, apellido, mail, idDireccion, idStore);
         });
         buscar.setOnAction(event -> {
-            String rs = "ID    NOMBRE  CATEGORIA   INVENTARIO\n" + GestorDB.gestor.buscarPelicula(tituloBusqueda.getText());
+            String rs = "ID    NOMBRE    CATEGORIA    INVENTARIO\n" + GestorDB.gestor.buscarPelicula(tituloBusqueda.getText());
             resultados.setText(rs);
         });
         registrarAlquiler.setOnAction(event -> {
@@ -150,6 +184,72 @@ public class ControllerMainView implements Initializable {
             float aux4 = Float.parseFloat(monto.getText());
             GestorDB.gestor.registrarDevolucion(aux1, aux2, aux3, aux4);
         });
+        consultar.setOnAction(event -> {
+            GestorDB gestorMaestro = GestorDB.gestor;
+            GestorDB.gestor = new GestorDB("jdbc:postgresql://localhost:5434/Progra2", "consultas", "9545");
+            String aux = "";
+            consultas.setDisable(true);
+            switch ((Consultas) consultas.getSelectionModel().getSelectedItem()){
+                case ALQUILERESxMESxCATEGORIA:
+                    variables.setDisable(false);
+                    saveParam.setDisable(false);
+                    variables.setPromptText("Mes a Consultar");
+                    break;
+                case ALQUILERESyMONTOxDURACION:
+                    variables.setDisable(false);
+                    saveParam.setDisable(false);
+                    variables.setPromptText("Duración a Consultar");
+                    break;
+                case ROLLUPxMESxANNO:
+                    aux = "MontoAlquiler    Año    Mes\n"
+                            + GestorDB.gestor.olapROLLUPxMESxANNO();
+                    consultas.setDisable(false);
+                    variables.setPromptText("");
+                    variables.setDisable(true);
+                    saveParam.setDisable(true);
+                    break;
+                case CUBExANNOxCATEGORIA:
+                    aux = "Año    Categoría    NumeroAlquileres    MontoAlquileres\n"
+                            + GestorDB.gestor.olapCUBExANNOxCATEGORIA();
+                    consultas.setDisable(false);
+                    variables.setPromptText("");
+                    variables.setDisable(true);
+                    saveParam.setDisable(true);
+                    break;
+                default:
+                    aux = "Error de consulta";
+                    consultas.setDisable(false);
+                    variables.setPromptText("");
+                    variables.setDisable(true);
+                    saveParam.setDisable(true);
+                    break;
+            }
+            GestorDB.gestor = gestorMaestro;
+            olapResults.setText(aux);
+        });
+        saveParam.setOnAction(event -> {
+            GestorDB gestorMaestro = GestorDB.gestor;
+            GestorDB.gestor = new GestorDB("jdbc:postgresql://localhost:5434/Progra2", "consultas", "9545");
+            String aux = "";
+            String param = variables.getText();
+            switch ((Consultas) consultas.getSelectionModel().getSelectedItem()) {
+                case ALQUILERESxMESxCATEGORIA:
+                    aux = GestorDB.gestor.olapALQUILERESxMESxCATEGORIA(param);
+                    break;
+                case ALQUILERESyMONTOxDURACION:
+                    aux = GestorDB.gestor.olapALQUILERESyMONTOxDURACION(param);
+                    break;
+                default:
+                    aux = "Error";
+                    break;
+            }
+            olapResults.setText(aux);
+            consultas.setDisable(false);
+            saveParam.setDisable(true);
+            variables.setDisable(true);
+            GestorDB.gestor = gestorMaestro;
+        });
+
     }
 
     private void setCategorias(){
@@ -187,5 +287,31 @@ public class ControllerMainView implements Initializable {
         ArrayList<String> tiendas = GestorDB.gestor.getStaticTable("SELECT * FROM get_tiendas()");
         ObservableList<String> tiendasObservable = FXCollections.observableArrayList(tiendas);
         idTienda.setItems(tiendasObservable);
+    }
+
+    private void setConsultas(){
+        consultas.setItems(FXCollections.observableArrayList(Consultas.values()));
+    }
+
+    private void setClientes(){
+        ArrayList<String> clientes = GestorDB.gestor.getClientes();
+        idClienteDevolucion.setItems(FXCollections.observableArrayList(clientes));
+        idClienteAlquiler.setItems(FXCollections.observableArrayList(clientes));
+    }
+
+    private void setStaff(){
+        ArrayList<String> staff = GestorDB.gestor.getStaticTable("SELECT * FROM get_staff()");
+        idStaffDevolucion.setItems(FXCollections.observableArrayList(staff));
+        idStaffAlquiler.setItems(FXCollections.observableArrayList(staff));
+    }
+
+    private void setInventario(){
+        ArrayList<String> inventario = GestorDB.gestor.getStaticTable("SELECT * FROM get_inventory()");
+        idInventario.setItems(FXCollections.observableArrayList(inventario));
+    }
+
+    private void setRentals(){
+        ArrayList<String> inventario = GestorDB.gestor.getStaticTable("SELECT * FROM get_rentals()");
+        idRental.setItems(FXCollections.observableArrayList(inventario));
     }
 }

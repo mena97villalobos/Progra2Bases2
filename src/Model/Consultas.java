@@ -1,0 +1,8 @@
+package Model;
+
+public enum Consultas {
+    ALQUILERESxMESxCATEGORIA,
+    ALQUILERESyMONTOxDURACION,
+    ROLLUPxMESxANNO,
+    CUBExANNOxCATEGORIA
+}

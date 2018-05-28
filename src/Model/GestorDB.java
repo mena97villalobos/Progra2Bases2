@@ -57,9 +57,27 @@ public class GestorDB {
             return array;
         } catch (SQLException e) {
             e.printStackTrace();
-            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+            //invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
         }
-        return null;
+        return new ArrayList<String>();
+    }
+
+    public ArrayList<String> getClientes(){
+        try {
+            ArrayList<String> array = new ArrayList<>();
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM get_clientes()");
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                String nombre = rs.getString("id") + " - " +
+                        rs.getString("nombre") + " " +
+                        rs.getString("apellido");
+                array.add(nombre);
+            }
+            return array;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<String>();
     }
 
     public void registrarAlquiler(int idCliente, int idInventario, int idStaff){
@@ -106,9 +124,9 @@ public class GestorDB {
             ResultSet rs = ps.executeQuery();
             String aux = "";
             while(rs.next()){
-                aux += rs.getString("id") + " "
-                        + rs.getString("name") + " "
-                        + rs.getString("cat") + " "
+                aux += rs.getString("id") + "    "
+                        + rs.getString("name") + "    "
+                        + rs.getString("cat") + "    "
                         + Integer.toString(rs.getInt("inventario")) + "\n";
             }
             return aux;
@@ -120,7 +138,26 @@ public class GestorDB {
     }
 
     public void insertarPelicula(Film film){
-
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM rigister_film(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            ps.setString(1, film.titulo);
+            ps.setString(2, film.descripcion);
+            ps.setTimestamp(3, film.ts);
+            ps.setInt(4, film.lenguaje);
+            ps.setInt(6, film.duracion);
+            ps.setInt(5, film.duracionPrestamo);
+            ps.setFloat(7, film.costoRemplazo);
+            ps.setString(8, film.mpaaRating);
+            ResultSet rs = ps.executeQuery();
+            if(rs.next()){
+                if(rs.getInt(1) == -1){
+                    invocarAlerta("Error al registrar", Alert.AlertType.ERROR);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
     }
 
     public void insertarCliente(String nombre, String apellido, String email, int idAddress, int idTienda){
@@ -143,4 +180,85 @@ public class GestorDB {
         }
     }
 
+    public String olapALQUILERESxMESxCATEGORIA(String mes){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM alquiler_realizado_por_categoria(?)");
+            ps.setString(1, mes);
+            ResultSet rs = ps.executeQuery();
+            String aux = "NumeroAlquileres    NombreCategoria\n";
+            while(rs.next()){
+                aux +=  Integer.toString(rs.getInt(1)) + "    "
+                        + rs.getString(2) + "\n";
+            }
+            return aux;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
+        return null;
+    }
+
+    public String olapALQUILERESyMONTOxDURACION(String duracion){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM alquiler_monto_por_prestamo(?)");
+            ps.setInt(1, Integer.parseInt(duracion));
+            ResultSet rs = ps.executeQuery();
+            String aux = "NumeroAlquileres MontoAlquileres Duracion\n";
+            while(rs.next()){
+                aux +=  Integer.toString(rs.getInt("numeroalquileres")) + "    "
+                        + Double.toString(rs.getDouble("montoalquileres")) + "    "
+                        + Integer.toString(rs.getInt("duracion")) + "\n";
+            }
+            return aux;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
+        return null;
+    }
+
+    public String olapROLLUPxMESxANNO(){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM rollup_por_anno()");
+            ResultSet rs = ps.executeQuery();
+            String aux = "";
+            while(rs.next()){
+                aux +=  Double.toString(rs.getDouble("montoalquileres")) + "    "
+                        + rs.getString("anno") + "    "
+                        + rs.getString("mes") + "\n";
+            }
+            return aux;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
+        return null;
+    }
+
+    public String olapCUBExANNOxCATEGORIA(){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM cube__por_anno_cat()");
+            ResultSet rs = ps.executeQuery();
+            String aux = "";
+            while(rs.next()){
+                aux +=  rs.getString("anno") + "    "
+                        + rs.getString("categoria") + "    "
+                        + Integer.toString(rs.getInt(3)) + "    "
+                        + Double.toString(rs.getDouble(4)) + "\n";
+            }
+            return aux;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
+        return null;
+    }
+
+    public void insertarCategoriasFilm(int filmID, int idCat){
+
+    }
+
+    public void insertarActorFilm(int filmID, int idCat){
+
+    }
 }

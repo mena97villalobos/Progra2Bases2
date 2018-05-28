@@ -99,6 +99,19 @@
                   </AnchorPane>
             </content>
           </Tab>
+            <Tab text="Consultas OLAP">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextArea fx:id="olapResults" editable="false" layoutX="14.0" layoutY="93.0" prefHeight="415.0" prefWidth="570.0" />
+                        <ComboBox fx:id="consultas" layoutX="14.0" layoutY="14.0" prefHeight="31.0" prefWidth="571.0" promptText="Consultas Disponibles" />
+                        <Button fx:id="consultar" layoutX="503.0" layoutY="52.0" mnemonicParsing="false" text="Consultar" />
+                        <TextField fx:id="variables" layoutX="14.0" layoutY="52.0" prefHeight="31.0" prefWidth="311.0" />
+                        <Button fx:id="saveParam" layoutX="340.0" layoutY="52.0" mnemonicParsing="false" text="Guardar Parametro" />
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
         </tabs>
       </TabPane>
    </children>

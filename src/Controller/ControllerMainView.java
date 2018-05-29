@@ -4,20 +4,14 @@ import Model.Consultas;
 import Model.Film;
 import Model.GestorDB;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 
 import java.net.URL;
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.ResourceBundle;
 
 public class ControllerMainView implements Initializable {
@@ -38,7 +32,7 @@ public class ControllerMainView implements Initializable {
     @FXML
     public TextField desc;
     @FXML
-    public DatePicker releaseDate;
+    public TextField releaseDate;
     @FXML
     public ComboBox lenguaje;
     @FXML
@@ -97,6 +91,12 @@ public class ControllerMainView implements Initializable {
     public TextField variables;
     @FXML
     public Button saveParam;
+    @FXML
+    public ComboBox inventarioFilm;
+    @FXML
+    public ComboBox tiendaFilm;
+    @FXML
+    public Button annadirInventario;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -116,7 +116,6 @@ public class ControllerMainView implements Initializable {
         catch (Exception e){ }
         variables.setDisable(true);
         saveParam.setDisable(true);
-        //TODO añadir las categorias a la pelicula creada
         guardar.setOnAction(event -> {
             String titulo = title.getText();
             String descripcion = desc.getText();
@@ -126,30 +125,25 @@ public class ControllerMainView implements Initializable {
             String mpaaRating = (String) rating.getSelectionModel().getSelectedItem();
             String l = (String) lenguaje.getSelectionModel().getSelectedItem();
             int idLenguaje = Integer.parseInt(Character.toString(l.charAt(0)));
-
-            String fecha = releaseDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date parsedDate = null;
-            try {
-                parsedDate = dateFormat.parse(fecha);
-            } catch (ParseException e) {}
-            Timestamp timestamp = new java.sql.Timestamp(parsedDate.getTime());
+            int year = Integer.parseInt(releaseDate.getText());
             ArrayList<String> cats = new ArrayList<>(catAdd.getItems());
             ArrayList<String> acts = new ArrayList<>(actAdd.getItems());
+            ArrayList<String> inventario = new ArrayList<>(inventarioFilm.getItems());
             Film f = new Film(titulo, descripcion, duracionPrestamo, duracion, costoRemplazo, mpaaRating,
-                    idLenguaje, cats, acts, timestamp);
-            GestorDB.gestor.insertarPelicula(f);
+                    idLenguaje, cats, acts, year);
+            GestorDB.gestor.insertarPelicula(f, inventario);
         });
         annadirAct.setOnAction(event -> {
             ArrayList<String> currentItems = new ArrayList<>(actAdd.getItems());
             currentItems.add((String) actDis.getSelectionModel().getSelectedItem());
             actAdd.setItems(FXCollections.observableArrayList(currentItems));
-
+            actDis.getSelectionModel().clearSelection();
         });
         annadirCat.setOnAction(event -> {
             ArrayList<String> currentItems = new ArrayList<>(catAdd.getItems());
             currentItems.add((String) catDis.getSelectionModel().getSelectedItem());
             catAdd.setItems(FXCollections.observableArrayList(currentItems));
+            catDis.getSelectionModel().clearSelection();
         });
         registrar.setOnAction(event -> {
             String nombre = fName.getText();
@@ -249,7 +243,12 @@ public class ControllerMainView implements Initializable {
             variables.setDisable(true);
             GestorDB.gestor = gestorMaestro;
         });
-
+        annadirInventario.setOnAction(event -> {
+            ArrayList<String> aux = new ArrayList<>(inventarioFilm.getItems());
+            aux.add((String) tiendaFilm.getSelectionModel().getSelectedItem());
+            inventarioFilm.setItems(FXCollections.observableArrayList(aux));
+            tiendaFilm.getSelectionModel().clearSelection();
+        });
     }
 
     private void setCategorias(){
@@ -287,6 +286,7 @@ public class ControllerMainView implements Initializable {
         ArrayList<String> tiendas = GestorDB.gestor.getStaticTable("SELECT * FROM get_tiendas()");
         ObservableList<String> tiendasObservable = FXCollections.observableArrayList(tiendas);
         idTienda.setItems(tiendasObservable);
+        tiendaFilm.setItems(tiendasObservable);
     }
 
     private void setConsultas(){

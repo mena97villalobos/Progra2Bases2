@@ -137,12 +137,12 @@ public class GestorDB {
         return null;
     }
 
-    public void insertarPelicula(Film film){
+    public void insertarPelicula(Film film, ArrayList<String> inventario){
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM rigister_film(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registrar_film(?, ?, ?, ?, ?, ?, ?, ?)");
             ps.setString(1, film.titulo);
             ps.setString(2, film.descripcion);
-            ps.setTimestamp(3, film.ts);
+            ps.setInt(3, film.year);
             ps.setInt(4, film.lenguaje);
             ps.setInt(6, film.duracion);
             ps.setInt(5, film.duracionPrestamo);
@@ -153,7 +153,43 @@ public class GestorDB {
                 if(rs.getInt(1) == -1){
                     invocarAlerta("Error al registrar", Alert.AlertType.ERROR);
                 }
+                else{
+                    int filmID = rs.getInt(1);
+                    for (String cat : film.cats) {
+                        insertarCategoriasFilm(filmID, Integer.parseInt(Character.toString(cat.charAt(0))));
+                    }
+                    for (String act : film.acts) {
+                        insertarActorFilm(filmID, Integer.parseInt(Character.toString(act.charAt(0))));
+                    }
+                    for (String s : inventario) {
+                        insertarInventario(s, filmID);
+                    }
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
+    }
+
+    public void insertarCategoriasFilm(int filmID, int idCat){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registra_film_categoria(?, ?)");
+            ps.setInt(1, filmID);
+            ps.setInt(2, idCat);
+            ps.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
+    }
+
+    public void insertarActorFilm(int filmID, int idAct){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registra_film_actor(?, ?)");
+            ps.setInt(1, idAct);
+            ps.setInt(2, filmID);
+            ps.executeQuery();
         } catch (SQLException e) {
             e.printStackTrace();
             invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
@@ -254,11 +290,17 @@ public class GestorDB {
         return null;
     }
 
-    public void insertarCategoriasFilm(int filmID, int idCat){
-
+    public void insertarInventario(String s, int filmID){
+        try {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM insertar_inventario(?, ?)");
+            ps.setInt(1, Integer.parseInt(Character.toString(s.charAt(0))));
+            ps.setInt(2, filmID);
+            ps.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
+        }
     }
 
-    public void insertarActorFilm(int filmID, int idCat){
 
-    }
 }

@@ -13,10 +13,10 @@ public class Film {
     int lenguaje;
     ArrayList<String> cats;
     ArrayList<String> acts;
-    Timestamp ts;
+    int year;
 
     public Film(String titulo, String descripcion, int duracionPrestamo, int duracion, float costoRemplazo,
-                String mpaaRating, int lenguaje, ArrayList cats, ArrayList acts, Timestamp ts) {
+                String mpaaRating, int lenguaje, ArrayList cats, ArrayList acts, int year) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.duracionPrestamo = duracionPrestamo;
@@ -26,6 +26,6 @@ public class Film {
         this.lenguaje = lenguaje;
         this.acts = acts;
         this.cats = cats;
-        this.ts = ts;
+        this.year = year;
     }
 }

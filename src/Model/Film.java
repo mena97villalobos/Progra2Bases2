@@ -11,12 +11,13 @@ public class Film {
     float costoRemplazo;
     String mpaaRating;
     int lenguaje;
-    ArrayList<String> cats;
-    ArrayList<String> acts;
+    ArrayList<Integer> cats;
+    ArrayList<Integer> acts;
+    ArrayList<Integer> inventario;
     int year;
 
     public Film(String titulo, String descripcion, int duracionPrestamo, int duracion, float costoRemplazo,
-                String mpaaRating, int lenguaje, ArrayList cats, ArrayList acts, int year) {
+                String mpaaRating, int lenguaje, ArrayList cats, ArrayList acts, int year, ArrayList inventario) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.duracionPrestamo = duracionPrestamo;
@@ -27,5 +28,6 @@ public class Film {
         this.acts = acts;
         this.cats = cats;
         this.year = year;
+        this.inventario = inventario;
     }
 }

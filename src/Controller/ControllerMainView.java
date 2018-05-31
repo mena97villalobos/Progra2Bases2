@@ -8,8 +8,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ResourceBundle;
@@ -100,20 +102,7 @@ public class ControllerMainView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setRatings();
-        setAddress();
-        setIdTienda();
-        setConsultas();
-        setClientes();
-        setStaff();
-        setInventario();
-        setRentals();
-        try{
-            setCategorias();
-            setActores();
-            setLenguajes();
-        }
-        catch (Exception e){ }
+        actualizarDatos();
         variables.setDisable(true);
         saveParam.setDisable(true);
         guardar.setOnAction(event -> {
@@ -126,12 +115,14 @@ public class ControllerMainView implements Initializable {
             String l = (String) lenguaje.getSelectionModel().getSelectedItem();
             int idLenguaje = Integer.parseInt(Character.toString(l.charAt(0)));
             int year = Integer.parseInt(releaseDate.getText());
-            ArrayList<String> cats = new ArrayList<>(catAdd.getItems());
-            ArrayList<String> acts = new ArrayList<>(actAdd.getItems());
-            ArrayList<String> inventario = new ArrayList<>(inventarioFilm.getItems());
+            ArrayList<Integer> cats = getIntArray(new ArrayList<>(catAdd.getItems()));
+            ArrayList<Integer> acts = getIntArray(new ArrayList<>(actAdd.getItems()));
+            ArrayList<Integer> inventario = getIntArray(new ArrayList<>(inventarioFilm.getItems()));
             Film f = new Film(titulo, descripcion, duracionPrestamo, duracion, costoRemplazo, mpaaRating,
-                    idLenguaje, cats, acts, year);
-            GestorDB.gestor.insertarPelicula(f, inventario);
+                    idLenguaje, cats, acts, year, inventario);
+            GestorDB.gestor.insertarPelicula(f);
+            actualizarDatos();
+            clear();
         });
         annadirAct.setOnAction(event -> {
             ArrayList<String> currentItems = new ArrayList<>(actAdd.getItems());
@@ -145,6 +136,12 @@ public class ControllerMainView implements Initializable {
             catAdd.setItems(FXCollections.observableArrayList(currentItems));
             catDis.getSelectionModel().clearSelection();
         });
+        annadirInventario.setOnAction(event -> {
+            ArrayList<String> aux = new ArrayList<>(inventarioFilm.getItems());
+            aux.add((String) tiendaFilm.getSelectionModel().getSelectedItem());
+            inventarioFilm.setItems(FXCollections.observableArrayList(aux));
+            tiendaFilm.getSelectionModel().clearSelection();
+        });
         registrar.setOnAction(event -> {
             String nombre = fName.getText();
             String apellido = lName.getText();
@@ -154,6 +151,8 @@ public class ControllerMainView implements Initializable {
             String direccion = (String) address.getSelectionModel().getSelectedItem();
             int idDireccion = Integer.parseInt(Character.toString(direccion.charAt(0)));
             GestorDB.gestor.insertarCliente(nombre, apellido, mail, idDireccion, idStore);
+            actualizarDatos();
+            clear();
         });
         buscar.setOnAction(event -> {
             String rs = "ID    NOMBRE    CATEGORIA    INVENTARIO\n" + GestorDB.gestor.buscarPelicula(tituloBusqueda.getText());
@@ -167,6 +166,8 @@ public class ControllerMainView implements Initializable {
             int aux2 = Integer.parseInt(Character.toString(idI.charAt(0)));
             int aux3 = Integer.parseInt(Character.toString(idStaff.charAt(0)));
             GestorDB.gestor.registrarAlquiler(aux1, aux2, aux3);
+            actualizarDatos();
+            clear();
         });
         registrarDevolucion.setOnAction(event -> {
             String idCliente = (String)idClienteDevolucion.getSelectionModel().getSelectedItem();
@@ -177,10 +178,12 @@ public class ControllerMainView implements Initializable {
             int aux3 = Integer.parseInt(Character.toString(idStaff.charAt(0)));
             float aux4 = Float.parseFloat(monto.getText());
             GestorDB.gestor.registrarDevolucion(aux1, aux2, aux3, aux4);
+            actualizarDatos();
+            clear();
         });
         consultar.setOnAction(event -> {
             GestorDB gestorMaestro = GestorDB.gestor;
-            GestorDB.gestor = new GestorDB("jdbc:postgresql://localhost:5434/Progra2", "consultas", "9545");
+            GestorDB.gestor = new GestorDB("jdbc:postgresql://localhost:5434/Progra2", "postgres", "9545");
             String aux = "";
             consultas.setDisable(true);
             switch ((Consultas) consultas.getSelectionModel().getSelectedItem()){
@@ -190,9 +193,11 @@ public class ControllerMainView implements Initializable {
                     variables.setPromptText("Mes a Consultar");
                     break;
                 case ALQUILERESyMONTOxDURACION:
-                    variables.setDisable(false);
-                    saveParam.setDisable(false);
-                    variables.setPromptText("Duración a Consultar");
+                    aux = GestorDB.gestor.olapALQUILERESyMONTOxDURACION();
+                    consultas.setDisable(false);
+                    variables.setPromptText("");
+                    variables.setDisable(true);
+                    saveParam.setDisable(true);
                     break;
                 case ROLLUPxMESxANNO:
                     aux = "MontoAlquiler    Año    Mes\n"
@@ -223,15 +228,12 @@ public class ControllerMainView implements Initializable {
         });
         saveParam.setOnAction(event -> {
             GestorDB gestorMaestro = GestorDB.gestor;
-            GestorDB.gestor = new GestorDB("jdbc:postgresql://localhost:5434/Progra2", "consultas", "9545");
+            GestorDB.gestor = new GestorDB("jdbc:postgresql://localhost:5434/Progra2", "postgres", "9545");
             String aux = "";
             String param = variables.getText();
             switch ((Consultas) consultas.getSelectionModel().getSelectedItem()) {
                 case ALQUILERESxMESxCATEGORIA:
                     aux = GestorDB.gestor.olapALQUILERESxMESxCATEGORIA(param);
-                    break;
-                case ALQUILERESyMONTOxDURACION:
-                    aux = GestorDB.gestor.olapALQUILERESyMONTOxDURACION(param);
                     break;
                 default:
                     aux = "Error";
@@ -243,12 +245,7 @@ public class ControllerMainView implements Initializable {
             variables.setDisable(true);
             GestorDB.gestor = gestorMaestro;
         });
-        annadirInventario.setOnAction(event -> {
-            ArrayList<String> aux = new ArrayList<>(inventarioFilm.getItems());
-            aux.add((String) tiendaFilm.getSelectionModel().getSelectedItem());
-            inventarioFilm.setItems(FXCollections.observableArrayList(aux));
-            tiendaFilm.getSelectionModel().clearSelection();
-        });
+
     }
 
     private void setCategorias(){
@@ -313,5 +310,59 @@ public class ControllerMainView implements Initializable {
     private void setRentals(){
         ArrayList<String> inventario = GestorDB.gestor.getStaticTable("SELECT * FROM get_rentals()");
         idRental.setItems(FXCollections.observableArrayList(inventario));
+    }
+
+    private void actualizarDatos(){
+        setRatings();
+        setAddress();
+        setIdTienda();
+        setConsultas();
+        setClientes();
+        setStaff();
+        setInventario();
+        setRentals();
+        try{
+            setCategorias();
+            setActores();
+            setLenguajes();
+        }
+        catch (Exception e){ }
+    }
+
+    private ArrayList<Integer> getIntArray(ArrayList<String> o){
+        ArrayList<Integer> aux = new ArrayList<>();
+        for (String s : o) {
+            aux.add(Integer.parseInt(Character.toString(s.charAt(0))));
+        }
+        return aux;
+    }
+
+    private void clear(){
+        catAdd.setItems(FXCollections.observableArrayList(new ArrayList<String>()));
+        actAdd.setItems(FXCollections.observableArrayList(new ArrayList<String>()));
+        inventarioFilm.setItems(FXCollections.observableArrayList(new ArrayList<String>()));
+        title.setText("");
+        desc.setText("");
+        releaseDate.setText("");
+        lenguaje.getSelectionModel().clearSelection();
+        rentalDuration.setText("");
+        lenght.setText("");
+        replacementCost.setText("");
+        rating.getSelectionModel().clearSelection();
+        fName.setText("");
+        lName.setText("");
+        email.setText("");
+        address.getSelectionModel().clearSelection();
+        tituloBusqueda.setText("");
+        resultados.setText("");
+        idClienteAlquiler.getSelectionModel().clearSelection();
+        idRental.getSelectionModel().clearSelection();
+        idStaffAlquiler.getSelectionModel().clearSelection();
+        idClienteDevolucion.getSelectionModel().clearSelection();
+        idInventario.getSelectionModel().clearSelection();
+        idStaffDevolucion.getSelectionModel().clearSelection();
+        monto.setText("");
+        idTienda.getSelectionModel().clearSelection();
+
     }
 }

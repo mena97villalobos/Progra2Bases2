@@ -11,7 +11,7 @@ public class GestorDB {
     private final String url;
     private String user;
     private String password;
-    private Connection connection;
+    public Connection connection;
     public static GestorDB gestor;
 
     public GestorDB(String connectionString, String user, String password) {
@@ -54,6 +54,8 @@ public class GestorDB {
                 String nombre = rs.getString("id") + " - " + rs.getString("nombre");
                 array.add(nombre);
             }
+            ps.close();
+            rs.close();
             return array;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -73,6 +75,8 @@ public class GestorDB {
                         rs.getString("apellido");
                 array.add(nombre);
             }
+            ps.close();
+            rs.close();
             return array;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -91,7 +95,13 @@ public class GestorDB {
                 if(rs.getInt(1) == -1){
                     invocarAlerta("Error al registrar", Alert.AlertType.ERROR);
                 }
+
+                else{
+                    invocarAlerta("Insertado", Alert.AlertType.INFORMATION);
+                }
             }
+            ps.close();
+            rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
             invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
@@ -107,10 +117,16 @@ public class GestorDB {
             ps.setFloat(4, monto);
             ResultSet rs = ps.executeQuery();
             if(rs.next()){
-                if(rs.getInt(1) != 1){
+                int aux = rs.getInt(1);
+                if(aux != 1){
                     invocarAlerta("Error al registrar", Alert.AlertType.ERROR);
                 }
+                else{
+                    invocarAlerta("Insertado", Alert.AlertType.INFORMATION);
+                }
             }
+            ps.close();
+            rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
             invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
@@ -129,6 +145,8 @@ public class GestorDB {
                         + rs.getString("cat") + "    "
                         + Integer.toString(rs.getInt("inventario")) + "\n";
             }
+            ps.close();
+            rs.close();
             return aux;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -137,9 +155,9 @@ public class GestorDB {
         return null;
     }
 
-    public void insertarPelicula(Film film, ArrayList<String> inventario){
+    public void insertarPelicula(Film film){
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registrar_film(?, ?, ?, ?, ?, ?, ?, ?)");
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registrar_film(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             ps.setString(1, film.titulo);
             ps.setString(2, film.descripcion);
             ps.setInt(3, film.year);
@@ -148,48 +166,20 @@ public class GestorDB {
             ps.setInt(5, film.duracionPrestamo);
             ps.setFloat(7, film.costoRemplazo);
             ps.setString(8, film.mpaaRating);
+            ps.setArray(9, connection.createArrayOf("INT", film.acts.toArray()));
+            ps.setArray(10, connection.createArrayOf("INT", film.cats.toArray()));
+            ps.setArray(11, connection.createArrayOf("INT", film.cats.toArray()));
             ResultSet rs = ps.executeQuery();
             if(rs.next()){
                 if(rs.getInt(1) == -1){
                     invocarAlerta("Error al registrar", Alert.AlertType.ERROR);
                 }
                 else{
-                    int filmID = rs.getInt(1);
-                    for (String cat : film.cats) {
-                        insertarCategoriasFilm(filmID, Integer.parseInt(Character.toString(cat.charAt(0))));
-                    }
-                    for (String act : film.acts) {
-                        insertarActorFilm(filmID, Integer.parseInt(Character.toString(act.charAt(0))));
-                    }
-                    for (String s : inventario) {
-                        insertarInventario(s, filmID);
-                    }
+                    invocarAlerta("Insertado", Alert.AlertType.INFORMATION);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
-        }
-    }
-
-    public void insertarCategoriasFilm(int filmID, int idCat){
-        try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registra_film_categoria(?, ?)");
-            ps.setInt(1, filmID);
-            ps.setInt(2, idCat);
-            ps.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
-        }
-    }
-
-    public void insertarActorFilm(int filmID, int idAct){
-        try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM registra_film_actor(?, ?)");
-            ps.setInt(1, idAct);
-            ps.setInt(2, filmID);
-            ps.executeQuery();
+            ps.close();
+            rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
             invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
@@ -209,7 +199,12 @@ public class GestorDB {
                 if(rs.getInt(1) == -1){
                     invocarAlerta("Error al registrar", Alert.AlertType.ERROR);
                 }
+                else{
+                    invocarAlerta("Insertado", Alert.AlertType.INFORMATION);
+                }
             }
+            ps.close();
+            rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
             invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
@@ -219,13 +214,15 @@ public class GestorDB {
     public String olapALQUILERESxMESxCATEGORIA(String mes){
         try {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM alquiler_realizado_por_categoria(?)");
-            ps.setString(1, mes);
+            ps.setInt(1, Integer.parseInt(mes));
             ResultSet rs = ps.executeQuery();
             String aux = "NumeroAlquileres    NombreCategoria\n";
             while(rs.next()){
                 aux +=  Integer.toString(rs.getInt(1)) + "    "
                         + rs.getString(2) + "\n";
             }
+            ps.close();
+            rs.close();
             return aux;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -234,10 +231,9 @@ public class GestorDB {
         return null;
     }
 
-    public String olapALQUILERESyMONTOxDURACION(String duracion){
+    public String olapALQUILERESyMONTOxDURACION(){
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM alquiler_monto_por_prestamo(?)");
-            ps.setInt(1, Integer.parseInt(duracion));
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM alquiler_monto_por_prestamo()");
             ResultSet rs = ps.executeQuery();
             String aux = "NumeroAlquileres MontoAlquileres Duracion\n";
             while(rs.next()){
@@ -245,6 +241,8 @@ public class GestorDB {
                         + Double.toString(rs.getDouble("montoalquileres")) + "    "
                         + Integer.toString(rs.getInt("duracion")) + "\n";
             }
+            ps.close();
+            rs.close();
             return aux;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -263,6 +261,8 @@ public class GestorDB {
                         + rs.getString("anno") + "    "
                         + rs.getString("mes") + "\n";
             }
+            ps.close();
+            rs.close();
             return aux;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -282,6 +282,8 @@ public class GestorDB {
                         + Integer.toString(rs.getInt(3)) + "    "
                         + Double.toString(rs.getDouble(4)) + "\n";
             }
+            ps.close();
+            rs.close();
             return aux;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -289,18 +291,5 @@ public class GestorDB {
         }
         return null;
     }
-
-    public void insertarInventario(String s, int filmID){
-        try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM insertar_inventario(?, ?)");
-            ps.setInt(1, Integer.parseInt(Character.toString(s.charAt(0))));
-            ps.setInt(2, filmID);
-            ps.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            invocarAlerta("Error al recuperar datos", Alert.AlertType.ERROR);
-        }
-    }
-
 
 }
